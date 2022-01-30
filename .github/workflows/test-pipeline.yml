@@ -38,5 +38,16 @@ jobs:
       - name: Run my py-file
         run: ./hell.py
         
+      - name: Install pyinstaller
+        run: pip install pyinstaller
+        
+      - name: Build binary hell.py
+        run: pyinstaller --onefile hell.py
+        
       - name: See files in directory
-        run: ls -lha
+        run: |
+          ls -lha
+          ls -lha dist/
+      
+      - name: Run binary hell
+        run: ./hell
