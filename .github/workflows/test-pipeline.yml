@@ -50,4 +50,4 @@ jobs:
           ls -lha dist/
       
       - name: Run binary hell
-        run: ./hell
+        run: ./dist/hell
