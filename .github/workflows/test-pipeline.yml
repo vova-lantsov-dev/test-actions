@@ -7,8 +7,6 @@ on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -24,30 +22,25 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
-          
-      - name: Run my py-file
-        run: ./hell.py
         
       - name: Install pyinstaller
         run: pip install pyinstaller
         
       - name: Build binary hell.py
         run: pyinstaller --onefile hell.py
-        
-      - name: See files in directory
-        run: |
-          ls -lha
-          ls -lha dist/
       
       - name: Run binary hell
         run: ./dist/hell
+        
+      - name: Calculating known hosts
+        run: echo ::set-output name=known_hosts::$(ssh-keyscan -H ${{ secrets.SSH_HOST }})
+      
+      - name: Install id_rsa SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ steps.vars.outputs.known_hosts }}
+          if_key_exists: fail # replace / ignore / fail; optional (defaults to fail)
+      
+      - name: Copy files via scp to the remote server
+        run: scp -P ${{ secrets.SSH_PORT }} 'dist/*' ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }}:${{ secrets.SSH_REMOTE_PATH }}
